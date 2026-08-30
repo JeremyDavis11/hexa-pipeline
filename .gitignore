@@ -1,0 +1,13 @@
+# Data and outputs are all regenerable from setup scripts and a pipeline run
+data/
+results/
+manual_results/
+
+# Nextflow internals
+work/
+.nextflow/
+.nextflow.log*
+
+# Cruft
+Miniforge3-MacOSX-arm64.sh
+.DS_Store
