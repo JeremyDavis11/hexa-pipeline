@@ -2,7 +2,7 @@
 a custom Nextflow pipeline for investigating the signficance of variants on and flanking the HEXA locus of human chromosome 15
 
 ## Background
-The HEXA gene codes for the enzyme Hexosaminidase A which catalyzes the degredation of G<sub>M2</sub> gangliosides in brain cell lysosomes. HEXA codes for the alpha subunit of Hexosaminidase, while HEXB codes for the beta subunit. Mutations to the HEXA gene can result in nonfunctional Hexosaminidase enzymes, which leads to decreased hydrolysis of gangliosides and thus build up of gangliosides in lysosomes. (Mahuran, 1990) The rare genetic lysosomal storage disease Tay-Sachs is caused by a mutation to the HEXA gene. Here, we present a pipeline for investigating genomic variants in and around the HEXA gene from a sequenced chromosome 15. This pipeline should be able to detect Tay-Sachs causing variants, most commonly a TATC insertion on exon 11 of the HEXA gene, but others exist at lower frequencies, and explore other variants in the gene and flanking regulatory regions (Mistri et. al., 2012).
+The HEXA gene codes for the enzyme Hexosaminidase A which catalyzes the degredation of G<sub>M2</sub> gangliosides in brain cell lysosomes. HEXA codes for the alpha subunit of Hexosaminidase, while HEXB codes for the beta subunit. Mutations to the HEXA gene can result in nonfunctional Hexosaminidase enzymes, which leads to decreased hydrolysis of gangliosides and thus build up of gangliosides in lysosomes. (Mahuran, 1990) The rare genetic lysosomal storage disease Tay-Sachs is caused by a mutation to the HEXA gene. Here, we present a pipeline for investigating genomic variants in and around the HEXA gene from a sequenced chromosome 15. This pipeline should be able to detect Tay-Sachs causing variants, most commonly a TATC insertion on exon 11 of the HEXA gene, but others exist at lower frequencies, and explore other variants in the gene and flanking regulatory regions (Mistri et al., 2012).
 
 ## Pipeline Overview
 
@@ -120,38 +120,40 @@ Results are written to HEXA_pipeline/results. The results file structure is as f
 ```
 results
 ├── bam
-│   ├── HG00096.chr15.sorted.bam
-│   └── HG00096.chr15.sorted.bam.bai
+│   ├── HG00096.chr15.sorted.bam
+│   └── HG00096.chr15.sorted.bam.bai
 ├── bwa-mem
-│   └── HG00096.chr15.sam
+│   └── HG00096.chr15.sam
 ├── fastp_trimmed
-│   ├── HG00096.HEXA.fastp.html
-│   ├── HG00096.HEXA.fastp.json
-│   ├── HG00096.HEXA.trimmed.R1.fastq.gz
-│   └── HG00096.HEXA.trimmed.R2.fastq.gz
+│   ├── HG00096.HEXA.fastp.html
+│   ├── HG00096.HEXA.fastp.json
+│   ├── HG00096.HEXA.trimmed.R1.fastq.gz
+│   └── HG00096.HEXA.trimmed.R2.fastq.gz
 ├── fastq
-│   └── gzipped
-│       ├── HG00096.HEXA.R1.fastq.gz
-│       └── HG00096.HEXA.R2.fastq.gz
+│   └── gzipped
+│       ├── HG00096.HEXA.R1.fastq.gz
+│       └── HG00096.HEXA.R2.fastq.gz
 ├── fastqc
-│   ├── HG00096.HEXA.R1_fastqc.html
-│   ├── HG00096.HEXA.R1_fastqc.zip
-│   ├── HG00096.HEXA.R2_fastqc.html
-│   └── HG00096.HEXA.R2_fastqc.zip
+│   ├── HG00096.HEXA.R1_fastqc.html
+│   ├── HG00096.HEXA.R1_fastqc.zip
+│   ├── HG00096.HEXA.R2_fastqc.html
+│   └── HG00096.HEXA.R2_fastqc.zip
 ├── fastqc_trimmed
-│   ├── HG00096.HEXA.trimmed.R1_fastqc.html
-│   ├── HG00096.HEXA.trimmed.R1_fastqc.zip
-│   ├── HG00096.HEXA.trimmed.R2_fastqc.html
-│   └── HG00096.HEXA.trimmed.R2_fastqc.zip
+│   ├── HG00096.HEXA.trimmed.R1_fastqc.html
+│   ├── HG00096.HEXA.trimmed.R1_fastqc.zip
+│   ├── HG00096.HEXA.trimmed.R2_fastqc.html
+│   └── HG00096.HEXA.trimmed.R2_fastqc.zip
 ├── markDuplicates
-│   ├── HG00096.chr15.markdup.bam
-│   ├── HG00096.chr15.markdup.bam.bai
-│   └── HG00096.chr15.markdup.metrics.txt
+│   ├── HG00096.chr15.markdup.bam
+│   ├── HG00096.chr15.markdup.bam.bai
+│   └── HG00096.chr15.markdup.metrics.txt
 ├── variants
-│   └── HG00096.chr15.vcf.gz
+│   └── HG00096.chr15.vcf.gz
 └── vep
     ├── HG00096.chr15.vep.vcf
-    └── HG00096.chr15.vep.vcf_summary.html
+    ├── HG00096.chr15.vep.vcf_summary.html
+    ├── clinvar_hexa.chr15.vep.vcf
+    └── clinvar_hexa.chr15.vep.vcf_summary.html
 ```
 
 Final annotation results are found in `HG00096.chr15.vep.vcf_summary.html` 
@@ -172,6 +174,57 @@ Of the 55 variants called in the window, 49 (89%) overlap the HEXA gene body, in
 
 Note: downstream VEP filtering for HEXA-overlapping variants and variants predicted to be high impact were found using `summarize_results.sh` Instructions on running this file can be found in the Usage section.
 
+## Predictor concordance with ClinVar classifications
+
+to assess concordance between the pipeline's PolyPhen annotations and ClinVar classifications, I took ClinVar's HEXA variants (pinned release to 09/23/2026, subset to the gene region, rename contigs to match reference), and ran them through the pipeline's VEP annotation step and compared PolyPhen predictions against ClinVar's clinical classifications.
+
+### Usage
+
+To run this analysis, first download the pinned release of ClinVar's GRCh38 clinical variant VCF file with `bash download_clinvar.sh`. Then subset the VCF to the same HEXA region used in the rest of the pipeline with `bash subset_clinvar_vcf.sh`. 
+
+Run the VEP step of the pipeline with the ClinVar VCF against the reference with:
+`nextflow run main.nf --annotate_only true --input_vcf data/clinvar/hexa_clinvar_chr15.vcf.gz`
+
+Finally, build a table of variant classifications where the rows are ClinVar's classifications and the columns are PolyPhen's effect predictions with `polyphen_analysis.py`. This produces the table at the bottom of this section. I collapsed it into the following smaller table:
+
+### Results
+
+| ClinVar group | benign | possibly_damaging | probably_damaging | n |
+|---|---|---|---|---|
+| Pathogenic / Likely pathogenic | 20 | 12 | 45 | 77 |
+| Benign / Likely benign | 36 | 3 | 1 | 40 |
+| Uncertain significance | 233 | 57 | 78 | 368 |
+| Conflicting classifications | 8 | 6 | 9 | 23 |
+
+PolyPhen called 57 varaints pathogenic out of 77 confirmed pathogenic variants, with 20 total pathogenic variants marked as benign. The benign set was small and called 36 benign out of 40 confirmed benign variants. 37% of the 368 variants of uncertain significance (VUS) are flagged as possibly or probably damaging. There are a small number of conflicting classifications that come from ClinVar variants with multiple entries in the VCF from different labs that reached differing conclusions about the variant.
+
+### Discussion
+
+PolyPhen flagged most pathogenic-side variants as damaging but called 20 of 77 benign. Agreement on the benign side was high, though the sample size was small at n=40. 134 of 367 uncertain significance variants got a damaging call. This analysis was not built to benchmark Polyphen, just to demonstrate that the pipeline can annotate external variant sets.
+
+### Limitations
+
+The benign set is too small to estimate sensitivity or specificity. The canonical HEXA transcript had no PolyPhen data, so transcript selection was pragmatic to test variant prediction efficacy. PolyPhen's training data may overlap with ClinVar's catalogued variants, so some variants may not be independent test cases (Grimm et al., 2015). This is especially true for a well studied gene like HEXA, where its catalogued variants could end up in training data for prediction algorithms. This is a case for a single gene, and cannot be generalized to other genes or the whole genome.
+
+### Full table
+Rows are ClinVar's classifications of variants, and columns are PolyPhen's predictions of variant significance. 
+
+| ClinVar classification | benign | possibly_damaging | probably_damaging |
+|---|---|---|---|
+| Affects | 0 | 0 | 2 |
+| Benign | 1 | 0 | 0 |
+| Benign/Likely_benign | 2 | 1 | 0 |
+| Benign/Likely_benign\|other | 0 | 0 | 1 |
+| Conflicting_classifications_of_pathogenicity | 8 | 5 | 9 |
+| Conflicting_classifications_of_pathogenicity\|other | 0 | 1 | 0 |
+| Likely_benign | 33 | 2 | 1 |
+| Likely_pathogenic | 13 | 8 | 15 |
+| Pathogenic | 4 | 1 | 13 |
+| Pathogenic/Likely_pathogenic | 3 | 3 | 17 |
+| Uncertain_significance | 233 | 56 | 78 |
+| Uncertain_significance\|Affects | 0 | 1 | 0 |
+| no_classification_for_the_single_variant | 1 | 0 | 0 |
+
 ## Next Steps
 
 This pipeline can be extended in two steps that would broaden the analysis from single genome variant calling to HEXA variant population frequency analysis
@@ -186,6 +239,8 @@ V3 - **Population Frequency Analysis**. Compare HEXA variant frequencies across 
 
 1000 Genomes | A Deep Catalog of Human Genetic Variation. (n.d.). Retrieved August 30, 2026, from https://www.internationalgenome.org/
 
+Adzhubei, I., Jordan, D. M., & Sunyaev, S. R. (2013). Predicting functional effect of human missense mutations using PolyPhen-2. Current protocols in human genetics, Chapter 7, Unit7.20. https://doi.org/10.1002/0471142905.hg0720s76
+
 Auton, A., Abecasis, G. R., Altshuler, D. M., Durbin, R. M., Abecasis, G. R., Bentley, D. R., Chakravarti, A., Clark, A. G., Donnelly, P., Eichler, E. E., Flicek, P., Gabriel, S. B., Gibbs, R. A., Green, E. D., Hurles, M. E., Knoppers, B. M., Korbel, J. O., Lander, E. S., Lee, C., … National Eye Institute, N. (2015). A global reference for human genetic variation. Nature, 526(7571), 68–74. https://doi.org/10.1038/nature15393
 
 Babraham Bioinformatics—FastQC A Quality Control tool for High Throughput Sequence Data. (n.d.). Retrieved August 30, 2026, from https://www.bioinformatics.babraham.ac.uk/projects/fastqc/
@@ -195,6 +250,8 @@ Chen, S., Zhou, Y., Chen, Y., & Gu, J. (2018). fastp: An ultra-fast all-in-one F
 Danecek, P., Bonfield, J. K., Liddle, J., Marshall, J., Ohan, V., Pollard, M. O., Whitwham, A., Keane, T., McCarthy, S. A., Davies, R. M., & Li, H. (2021). Twelve years of SAMtools and BCFtools. GigaScience, 10(2), giab008. https://doi.org/10.1093/gigascience/giab008
 
 Di Tommaso, P., Chatzou, M., Floden, E. W., Barja, P. P., Palumbo, E., & Notredame, C. (2017). Nextflow enables reproducible computational workflows. Nature Biotechnology, 35(4), 316–319. https://doi.org/10.1038/nbt.3820
+
+Grimm, D. G., Azencott, C. A., Aicheler, F., Gieraths, U., MacArthur, D. G., Samocha, K. E., Cooper, D. N., Stenson, P. D., Daly, M. J., Smoller, J. W., Duncan, L. E., & Borgwardt, K. M. (2015). The evaluation of tools used to predict the impact of missense variants is hindered by two types of circularity. Human mutation, 36(5), 513–523. https://doi.org/10.1002/humu.22768
 
 Li, H. (2013). Aligning sequence reads, clone sequences and assembly contigs with BWA-MEM (arXiv:1303.3997). arXiv. https://doi.org/10.48550/arXiv.1303.3997
 

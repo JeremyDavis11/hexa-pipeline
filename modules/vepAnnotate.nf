@@ -14,6 +14,6 @@ process vepAnnotate {
 
     script:
     """
-    vep -i ${vcf} -o ${sample_id}.chr15.vep.vcf --cache --offline --dir_cache /vep_cache --fasta chr15.fa --vcf --everything --force_overwrite
+    vep -i ${vcf} -o ${sample_id}.chr15.vep.vcf --cache --offline --dir_cache /vep_cache --fasta chr15.fa --vcf --everything --flag_pick --force_overwrite
     """
 }
