@@ -196,15 +196,15 @@ Finally, build a table of variant classifications where the rows are ClinVar's c
 | Uncertain significance | 233 | 57 | 78 | 368 |
 | Conflicting classifications | 8 | 6 | 9 | 23 |
 
-PolyPhen called 57 varaints pathogenic out of 77 confirmed pathogenic variants, with 20 total pathogenic variants marked as benign. The benign set was small and called 36 benign out of 40 confirmed benign variants. 37% of the 368 variants of uncertain significance (VUS) are flagged as possibly or probably damaging. There are a small number of conflicting classifications that come from ClinVar variants with multiple entries in the VCF from different labs that reached differing conclusions about the variant.
+PolyPhen called 57 variants pathogenic out of 77 confirmed pathogenic variants, with 20 total pathogenic variants marked as benign. The benign set was small and called 36 benign out of 40 confirmed benign variants. 37% of the 368 variants of uncertain significance (VUS) are flagged as possibly or probably damaging. There are a small number of conflicting classifications that come from ClinVar variants with multiple entries in the VCF from different labs that reached differing conclusions about the variant.
 
 ### Discussion
 
-PolyPhen flagged most pathogenic-side variants as damaging but called 20 of 77 benign. Agreement on the benign side was high, though the sample size was small at n=40. 134 of 367 uncertain significance variants got a damaging call. This analysis was not built to benchmark Polyphen, just to demonstrate that the pipeline can annotate external variant sets.
+PolyPhen flagged most pathogenic-side variants as damaging but called 20 of 77 benign. Agreement on the benign side was high, though the sample size was small at n=40. 135 of 368 uncertain significance variants got a damaging call. This analysis was not built to benchmark PolyPhen, just to demonstrate that the pipeline can annotate external variant sets.
 
 ### Limitations
 
-The benign set is too small to estimate sensitivity or specificity. The canonical HEXA transcript had no PolyPhen data, so transcript selection was pragmatic to test variant prediction efficacy. PolyPhen's training data may overlap with ClinVar's catalogued variants, so some variants may not be independent test cases (Grimm et al., 2015). This is especially true for a well studied gene like HEXA, where its catalogued variants could end up in training data for prediction algorithms. This is a case for a single gene, and cannot be generalized to other genes or the whole genome.
+The benign set of 40 variants is too small to estimate specificity. With 77 total pathogenic variants, the sensitity estimate is more usable. The canonical HEXA transcript had no PolyPhen scores, so all transcripts were selected to test variant prediction efficacy. PolyPhen's training data may overlap with ClinVar's catalogued variants, so some variants may not be independent test cases (Grimm et al., 2015). This is especially true for a well studied gene like HEXA, where its catalogued variants could end up in training data for prediction algorithms. This is a case for a single gene, and cannot be generalized to other genes or the whole genome.
 
 ### Full table
 Rows are ClinVar's classifications of variants, and columns are PolyPhen's predictions of variant significance. 
