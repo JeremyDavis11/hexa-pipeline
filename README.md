@@ -1,8 +1,8 @@
-# HEXA Varint Analysis
-a custom Nextflow pipeline for investigating the signficance of variants on and flanking the HEXA locus of human chromosome 15
+# HEXA Variant Analysis
+a custom Nextflow pipeline for investigating the significance of variants on and flanking the HEXA locus of human chromosome 15
 
 ## Background
-The HEXA gene codes for the enzyme Hexosaminidase A which catalyzes the degredation of G<sub>M2</sub> gangliosides in brain cell lysosomes. HEXA codes for the alpha subunit of Hexosaminidase, while HEXB codes for the beta subunit. Mutations to the HEXA gene can result in nonfunctional Hexosaminidase enzymes, which leads to decreased hydrolysis of gangliosides and thus build up of gangliosides in lysosomes. (Mahuran, 1990) The rare genetic lysosomal storage disease Tay-Sachs is caused by a mutation to the HEXA gene. Here, we present a pipeline for investigating genomic variants in and around the HEXA gene from a sequenced chromosome 15. This pipeline should be able to detect Tay-Sachs causing variants, most commonly a TATC insertion on exon 11 of the HEXA gene, but others exist at lower frequencies, and explore other variants in the gene and flanking regulatory regions (Mistri et al., 2012).
+The HEXA gene codes for the enzyme Hexosaminidase A which catalyzes the degradation of G<sub>M2</sub> gangliosides in brain cell lysosomes. HEXA codes for the alpha subunit of Hexosaminidase, while HEXB codes for the beta subunit. Mutations to the HEXA gene can result in nonfunctional Hexosaminidase enzymes, which leads to decreased hydrolysis of gangliosides and thus build up of gangliosides in lysosomes. (Mahuran, 1990) The rare genetic lysosomal storage disease Tay-Sachs is caused by a mutation to the HEXA gene. Here, we present a pipeline for investigating genomic variants in and around the HEXA gene from a sequenced chromosome 15. This pipeline should be able to detect Tay-Sachs causing variants, most commonly a TATC insertion on exon 11 of the HEXA gene, but others exist at lower frequencies, and explore other variants in the gene and flanking regulatory regions (Mistri et al., 2012).
 
 ## Pipeline Overview
 
@@ -63,7 +63,7 @@ flowchart TB
 
 | Process | Function | Input | Output |
 | --- | --- | --- | --- |
-| `getFastqs` | Download the HEXA region of chromosome 15 from a CRAM URL for both the forward and reverse strands | sample ID, CRAM URL for desired genome, and HEXA coordinates on CHR15 | sample_id.HEXA.R1.fastq.gz, sample_id.HEXA.R2.fastq.gz |
+| `getFastqs` | Download the HEXA region of chromosome 15 from a CRAM URL access | sample ID, CRAM URL for desired genome, and HEXA coordinates on CHR15 | sample_id.HEXA.R1.fastq.gz, sample_id.HEXA.R2.fastq.gz |
 | `runFastqc` | run Fastqc to confirm quality of input HEXA region | R1 HEXA region, R2 HEXA region | fastqc.html, fastqc.zip |
 | `fastpTrim` | Adaptor and quality based trimming of the input HEXA region fastq files | R1 HEXA region, R2 HEXA region | Trimmed R1 HEXA region, trimmed R2 HEXA region, HEXA.fastp.html, HEXA.fastp.json |
 | `runFastqcTrimmed` | run Fastqc on trimmed files to show quality improvements over raw fastq files | Trimmed R1 HEXA region, trimmed R2 HEXA region | fastqc_trimmed.html, fastqc_trimmed.zip |
@@ -71,30 +71,33 @@ flowchart TB
 | `sortAndIndex` | Sort and index aligned SAM file for downstream variant calling and annotation, and convert to BAM format | *.chr15.sam, sample ID | chr15.sorted.bam, chr15.sorted.bam.bai (index file) |
 | `markDuplicates` | Mark duplicates and generate duplication metrics for downstream variant calling | chr15.sorted.bam, chr15.sorted.bam.bai (index file), sample ID | chr15.markdup.bam, chr15.markdup.metrics.txt |
 | `indexMarkDup` | Index the duplicated marked alignment | chr15.markdup.bam | chr15.markdup.bam.bai (index file) |
-| `callVariants` | Call variants from the duplicate marked alignment into a VCF file | sample ID, chr15 reference, chr15.markdup.bam, chr15.markdup.bam.bai (index file) | chr15.vcf.gz |
+| `callVariants` | Call variants from the duplicate-marked alignment into a VCF file | sample ID, chr15 reference, chr15.markdup.bam, chr15.markdup.bam.bai (index file) | chr15.vcf.gz |
 | `vepAnnotate` | Annotate variant call VCF file with a local VEP cache, classifying variants by type, location, and predicted effects | sample ID, chr15 reference, chr15.vcf.gz | vep.vcf, vep.vcf_summary.html |
 
 ## Methodology Overview
 
-This pipeline takes a sample genome slice from chr15:72335000-72382000, coordiantes corresponding to the GrCh38 human reference genome, and aligns it against that same reference genome, calls SNVs, indels, and structural variants, and then annotates those variants Ensembl Variant Effect Predictor (VEP). We call a number of standard tools for quality control and filtering, alignemnt, variant calling, and annotation. 
+This pipeline takes a sample genome slice from chr15:72335000-72382000, coordinates corresponding to the GRCh38 human reference genome, and aligns it against that same reference genome, calls SNVs and indels, and then annotates those variants with Ensembl Variant Effect Predictor (VEP). We call a number of standard tools for quality control and filtering, alignment, variant calling, and annotation. 
 
-Note: Running this pipeline requires a local download of the chromosome 15 slice of the GrCh38 human reference genome and a local VEP cache for annotation, totalling ~25 GB. These downloads are setup and not analysis, and are thus excluded from the pipeline. Instructions for installing these depedencies can be found below in the use section.
+Note: Running this pipeline requires a local download of the chromosome 15 slice of the GRCh38 human reference genome and a local VEP cache for annotation, totalling ~25 GB. These downloads are setup and not analysis, and are thus excluded from the pipeline. Instructions for installing these dependencies can be found below in the Usage section.
 
-First, raw fastq files containing the chr15:72335000-72382000 HEXA slice of a sample genome are downloaded via an ftp link with `getFastqs`. One file for the forward strand, and another for the reverse complement strand so all possible variants are aligned to the reference genome. 
 
-The forward (R1) and reverse complement (R2) fastq files are passed to `runFastqc`, which generates an HTML quality control report for the unfiltered fastq files. Simultaniously, the fastqs are passed to `fastpTrim` which trims low quality bases, potentially leftover adaptors, and polyX heads or tails on the chromosome 15 HEXA slice. The trimmed R1 and R2 fastqs are passed to `runFastqcTrimmed` which generates the same report as `runFastqc` on the trimmed file, which should show higher quality metrics. Now the reads are trimmed and prepared for downstream alignment, duplicate marking, and variant calling. 
+`getFastqs` extracts the reads overlapping the chr15:72335000-72382000 HEXA region of GRCh38 from a remote CRAM file and converts them to FASTQ format. R1 and R2 are the paired mate reads from each fragment. Mates are collated, or grouped by read name, so R1 and R2 stay in matching order. Singleton reads whose mates fall outside the region are discarded. This slightly reduces coverage at the window edges, but the flanking sequences around the HEXA gene keep the HEXA gene body covered.
 
-`bwaAlign` takes in the trimmed fastqs and aligns them to the GrCH38 chromosome 15 reference using the `bwa-mem` alignment tool. The resulting alignment is in SAM format. 
+Pairing reads improves alignment and variant detection. If one read lands in a repetitive sequence that occurs in several locations, its mate usually lands in a nearby unique sequence, and the aligner uses the mate to place the ambiguous read correctly. Paired reads help with variant detection because the downstream aligner knows mates should typically map about one fragment-length apart. Pairs that map much farther apart or too close can indicate structural variants.
 
-The SAM format alignment is sorted, indexed, and converted to the binary BAM format with `sortAndIndex`, which calls the `samtools` package. Thus produces an accessory .bam.bai index file for efficent duplicate marking. 
+R1 and R2 fastq files are passed to `runFastqc`, which generates an HTML quality control report for the unfiltered fastq files. Simultaneously, the fastqs are passed to `fastpTrim` which trims low quality bases, potentially leftover adaptors, and polyX heads or tails on the chromosome 15 HEXA slice. The trimmed R1 and R2 fastqs are passed to `runFastqcTrimmed` which generates the same report as `runFastqc` on the trimmed file, which should show higher quality metrics. Now the reads are trimmed and prepared for downstream alignment, duplicate-marking, and variant calling. 
 
-Next, `markDuplicates` flags duplicate regions of the alignment that resulted from overamplification of certain regions during the sequencing process, such that each found variant in downstream variant calling is not counted multiple times over, which skews the variant count and annotation results. This results in a duplicate marked BAM file, which is passed to `indexMarkDup` which creates an index .bam.bai file for the new duplicate marked alignment. 
+`bwaAlign` takes in the trimmed fastqs and aligns them to the GRCH38 chromosome 15 reference using the `bwa-mem` alignment tool. The resulting alignment is in SAM format. 
+
+The SAM format alignment is sorted, indexed, and converted to the binary BAM format with `sortAndIndex`, which calls the `samtools` package. This produces an accessory .bam.bai index file for efficient duplicate marking. 
+
+Next, `markDuplicates` runs `Picard MarkDuplicates` to flag duplicate reads, which are copies of the same original fragment that mostly result from PCR amplification during library preparation. Among pairs with matching start positions and orientation, one is kept as the representative and the rest are flagged. Flagged reads are not removed, `bcftools mpileup` in `callVariants` just skips flagged duplicates during variant calling. Unflagged copies would inflate read depth and make a single fragment's amplification errors look like independent support for an allele, which leads to false positive calls and overconfident genotype calls. The output is a duplicate-marked BAM file which is indexed by `indexMarkDup`. 
 
 Now the alignment is prepared for variant calling with `callVariants` which identifies variants with the `bcftools` package. This process produces a VCF file containing each variant identified in the alignment along with its coordinates. 
 
-Finally, the VCF file is used as input to Ensembl's VEP (variant effect predictor), which uses a cache of known variant information to classify variants by type, location, predicted effects, and if they are present in clinical variant databases including gnomAD and ClinVar. THis produced a new VCF file and an HTML report containing summaries of the predicted variant effects and variant classifications. 
+Finally, the VCF file is used as input to Ensembl's VEP (variant effect predictor), which uses a cache of known variant information to classify variants by type, location, predicted effects, and if they are present in clinical variant databases including gnomAD and ClinVar. This produces a new VCF file and an HTML report containing summaries of the predicted variant effects and variant classifications. 
 
-Pipeline development note: Downloading the 47kb HEXA region of Chr15 from the GrCh38 build creates its own naming and coordiate system starting at 1. This reference would be useless because the coordinates would not match their true Chr15 coordinates that the aligned reads carry and that VEP can annotate. This was our original download of the Chr15 region. `prepare_reference.sh` fixes this by pulling all of Chr15 and then slicing to the window rather than just downloading the window, so reference naming and coordinate information is carried forward.
+Pipeline development note: Downloading the 47kb HEXA region of Chr15 from the GRCh38 build creates its own naming and coordinate system starting at 1. This reference would be useless because the coordinates would not match their true Chr15 coordinates that the aligned reads carry and that VEP can annotate. This was our original download of the Chr15 region. `prepare_reference.sh` fixes this by pulling all of Chr15 and then slicing to the window rather than just downloading the window, so reference naming and coordinate information is carried forward.
 
 ## Usage
 
@@ -160,7 +163,7 @@ Final annotation results are found in `HG00096.chr15.vep.vcf_summary.html`
 
 ## Results
 
-The pipeline identified 55 variants in the Chr15:72,335,000-72,382,000 window for HG00096, all of which passed annotation with VEP. 84% (46/55) were known variants with exisitng dbSNP identifiers, which is consistent with variant alling a well-characterized region of a reference-cohort sample. The remaining 9 variants were novel. Variants overlapped 4 genes including HEXA distributed across consequence types:
+The pipeline identified 55 variants in the Chr15:72,335,000-72,382,000 window for HG00096, all of which passed annotation with VEP. 84% (46/55) were known variants with existing dbSNP identifiers, which is consistent with variant calling a well-characterized region of a reference-cohort sample. The remaining 9 variants were novel. Variants overlapped 4 genes including HEXA distributed across consequence types:
 
 * 37 intron variants
 * 8 non-coding transcript exon variants
@@ -170,13 +173,21 @@ The pipeline identified 55 variants in the Chr15:72,335,000-72,382,000 window fo
 * 1 splice polypyrimidine tract variant
 * 1 upstream gene variant
 
-Of the 55 variants called in the window, 49 (89%) overlap the HEXA gene body, including introns and UTRs. of these 49 variants, 37 are intronic, which is consistent with HEXA itself being primarily comprised of intron sequences. No variants were predicted to be high impact (nonsense, fameshift, splice-distrupting) by VEP, and none altered the HEXA protein coding sequence. This is the expected profile for a general population sample: the pathogenic HEXA allele underlying Tay-Sachs are enriched by a founder effect in specific populations (Ashkenazi Jewish, French Canadian) rather than being distributed broadly across the population, so their abscence here is anticipated rather than a null result.
+Of the 55 variants called in the window, 49 (89%) overlap the HEXA gene body, including introns and UTRs. Of these 49 variants, 37 are intronic, which is consistent with HEXA itself being primarily comprised of intron sequences. No variants were predicted to be high impact (nonsense, frameshift, splice-disrupting) by VEP, and none altered the HEXA protein coding sequence. This is the expected profile for a general population sample: the pathogenic HEXA alleles underlying Tay-Sachs are enriched by a founder effect in specific populations (Ashkenazi Jewish, French Canadian) rather than being distributed broadly across the population, so their absence here is anticipated rather than a null result.
 
-Note: downstream VEP filtering for HEXA-overlapping variants and variants predicted to be high impact were found using `summarize_results.sh` Instructions on running this file can be found in the Usage section.
+Note: downstream VEP filtering for HEXA-overlapping variants and variants predicted to be high impact were found using `summarize_results.sh`. Instructions on running this file can be found in the Usage section.
 
 ## Predictor concordance with ClinVar classifications
 
-to assess concordance between the pipeline's PolyPhen annotations and ClinVar classifications, I took ClinVar's HEXA variants (pinned release to 09/23/2026, subset to the gene region, rename contigs to match reference), and ran them through the pipeline's VEP annotation step and compared PolyPhen predictions against ClinVar's clinical classifications.
+To assess concordance between the pipeline's PolyPhen annotations and ClinVar classifications, I took ClinVar's HEXA variants (pinned release to 09/23/2026, subset to the gene region, rename contigs to match reference), and ran them through the pipeline's VEP annotation step and compared PolyPhen predictions against ClinVar's clinical classifications.
+
+### Methods
+
+ `polyphen_analysis.py` produces a contingency table that cross-tabulates ClinVar's variant classification against PolyPhen's prediction for each variant. The agreement in the pathogenic/likely pathogenic and benign/likely benign rows gives sensitivity and specificity, while the variants of unknown significance (VUS) and Conflict rows show what PolyPhen predicts when ClinVar has no confident answer. Conflicting calls are due to multiple labs submitting different interpretations of the same variant. To ensure variants are not counted multiple times over, only the first missense transcript with a PolyPhen score for a given variant is used.
+ 
+ ClinVar's classifications are grouped by the part before `|` in the label. 519 variants received a missense PolyPhen call, and 3 variants with "Affects" and "no_classification" labels, plus 7 with no CLNSIG labels are excluded. The full raw-label table at the bottom of this analysis totals 512 because the seven variants with no CLNSIG have no available label to form a row. 
+
+ Sensitivity and specificity estimates are calculated along with a 95% confidence interval for each from the contingency table. Sensitivity is the fraction of Pathogenic/Likely pathogenic variants called damaging, and specificity is the fraction of Benign/Likely benign not called damaging. Confidence intervals are calculated with a Wilson score interval using the `proportion_ci` method of `scipy.stats.binomtest`. 
 
 ### Usage
 
@@ -185,26 +196,42 @@ To run this analysis, first download the pinned release of ClinVar's GRCh38 clin
 Run the VEP step of the pipeline with the ClinVar VCF against the reference with:
 `nextflow run main.nf --annotate_only true --input_vcf data/clinvar/hexa_clinvar_chr15.vcf.gz`
 
-Finally, build a table of variant classifications where the rows are ClinVar's classifications and the columns are PolyPhen's effect predictions with `polyphen_analysis.py`. This produces the table at the bottom of this section. I collapsed it into the following smaller table:
+To run `polyphen_analysis.py`, create a new venv with `/path/to/python3 -m venv .venv`, activate it with `source .venv/bin/activate`, and `pip install -r requirements.txt` to get the pinned versions of all packages used in this analysis. This script was tested with Python version 3.14. 
+
+Build a table of variant classifications where the rows are ClinVar's classifications and the columns are PolyPhen's effect predictions with `polyphen_analysis.py`. This produces the table at the bottom of this section in addition to grouping ClinVar classifications, estimating sensitivity/specificity, and calculating associated confidence intervals. 
+
 
 ### Results
 
-| ClinVar group | benign | possibly_damaging | probably_damaging | n |
+| ClinVar group | Benign | Possibly_damaging | Probably_damaging | All |
 |---|---|---|---|---|
-| Pathogenic / Likely pathogenic | 20 | 12 | 45 | 77 |
-| Benign / Likely benign | 36 | 3 | 1 | 40 |
-| Uncertain significance | 233 | 57 | 78 | 368 |
-| Conflicting classifications | 8 | 6 | 9 | 23 |
+|Benign/Likely_benign| 36 | 3 | 2 | 41 |
+| Conflict | 8 | 6 | 9 | 23 |
+| Excluded | 4 | 1 | 5 | 10 |
+| Pathogenic/Likely_pathogenic | 20 | 12 | 45 | 77 |
+| VUS | 233 | 57 | 78 | 368 |
+| All | 301 | 79 | 139 | 519 |
 
-PolyPhen called 57 variants pathogenic out of 77 confirmed pathogenic variants, with 20 total pathogenic variants marked as benign. The benign set was small and called 36 benign out of 40 confirmed benign variants. 37% of the 368 variants of uncertain significance (VUS) are flagged as possibly or probably damaging. There are a small number of conflicting classifications that come from ClinVar variants with multiple entries in the VCF from different labs that reached differing conclusions about the variant.
+From this contingency table, I calculated strict and lenient sensitivity and specificity estimates. Lenient estimates count possibly and probably damaging as damaging calls. Strict estimates only use probably damaging calls for damaging (pathogenic) calls.
+
+| Metric | Threshold | k/n | Estimate | 95% CI (Wilson) |
+|---|---|---|---|---|
+| Sensitivity | Lenient | 57/77 | 0.740 | 0.633 - 0.825 |
+| Sensitivity | Strict | 45/77 | 0.584 | 0.473 - 0.688 |
+| Specificity | Lenient | 36/41 | 0.878 | 0.745 - 0.947 |
+| Specificity | Strict | 39/41 | 0.951 | 0.839 - 0.987 |
+
+Stricter calling lowers sensitivity (0.740 -> 0.584) and raises specificity (0.878 -> 0.951).
 
 ### Discussion
 
-PolyPhen flagged most pathogenic-side variants as damaging but called 20 of 77 benign. Agreement on the benign side was high, though the sample size was small at n=40. 135 of 368 uncertain significance variants got a damaging call. This analysis was not built to benchmark PolyPhen, just to demonstrate that the pipeline can annotate external variant sets.
+PolyPhen flagged most pathogenic-side variants as damaging but called 20 of 77 benign. Agreement on the benign side was high, though the sample size was small at n=41. 135 of 368 variants of unknown significance got a damaging call. Of the 23 total conflicting ClinVar entries, PolyPhen called 8 benign, 6  possibly damaging and 9 probably damaging, much like the submitters' disagreement.
+
+PolyPhen's "possibly damaging" calls fell on confirmed pathogenic variants (12 of 77) more often than on benign ones (3 of 41). Treating possibly damaging calls as damaging recovers more true disease variants than it adds false positives. Threshold choice depends on the use of this variant calling pipeline. The pipeline reports PolyPhen's categories rather than a hard pathogenic/benign call for each variant, so interpreting the output is contingent on this threshold choice. This analysis was not built to benchmark PolyPhen, but rather to demonstrate that the pipeline can annotate external variant sets.
 
 ### Limitations
 
-The benign set of 40 variants is too small to estimate specificity. With 77 total pathogenic variants, the sensitity estimate is more usable. The canonical HEXA transcript had no PolyPhen scores, so all transcripts were selected to test variant prediction efficacy. PolyPhen's training data may overlap with ClinVar's catalogued variants, so some variants may not be independent test cases (Grimm et al., 2015). This is especially true for a well studied gene like HEXA, where its catalogued variants could end up in training data for prediction algorithms. This is a case for a single gene, and cannot be generalized to other genes or the whole genome.
+All four sensitivity and specificity estimates had wide confidence intervals, about 15-22 percentage points. The canonical HEXA transcript had no PolyPhen scores, so the first missense transcript with a PolyPhen score was used. Choice of transcript is a rule, and results could differ if only the cannonical transcript is used or if all transcripts are used. PolyPhen's training data may overlap with ClinVar's catalogued variants, so some variants may not be independent test cases (Grimm et al., 2015). This is especially true for a well studied gene like HEXA, where its catalogued variants could end up in training data for prediction algorithms. Confidence intervals reflect sampling uncertainty only, not the training data overlap bias. This is a case for a single gene, and cannot be generalized to other genes or the whole genome.
 
 ### Full table
 Rows are ClinVar's classifications of variants, and columns are PolyPhen's predictions of variant significance. 
@@ -231,7 +258,7 @@ This pipeline can be extended in two steps that would broaden the analysis from 
 
 V2 - **Multiple Samples**. Extend the pipeline to process a cohort of input genomes in one run. Refactor the process to have samples carry identifiers through the whole workflow so outputs do not collide and so samples stay tracked. Organize output by input sample and generate cohort-wide variant statistics report.
 
-V3 - **Population Frequency Analysis**. Compare HEXA variant frequencies across the input samples cohort against reference population data from a known Tay-Sachs affected population. Tay-Sachs pathogenic alleles are enriched in specific population via a historical bottleneck, so the analysis targets specific, known founder variants, and compares their frequency to whatever cohort is used as input, for example a subsample of the general population, or a current subsample of Asheknazi Jewish people.
+V3 - **Population Frequency Analysis**. Compare HEXA variant frequencies across the input samples cohort against reference population data from a known Tay-Sachs affected population. Tay-Sachs pathogenic alleles are enriched in specific population via a historical bottleneck, so the analysis targets specific, known founder variants, and compares their frequency to whatever cohort is used as input, for example a subsample of the general population, or a current subsample of Ashkenazi Jewish people.
 
 **Small Addition**: Swap bcftools variant calling for GATK HaplotypeCaller which is more robust for population wide variant calling
 

@@ -22,6 +22,7 @@ workflow {
     ref_ch = channel.fromPath("${params.reference}*").collect()
 
     if (params.annotate_only) {
+        // annotate only processes
         vcf_ch = channel.fromPath(params.input_vcf)
         vepAnnotate('clinvar_hexa', ref_ch, vcf_ch)
     } else {

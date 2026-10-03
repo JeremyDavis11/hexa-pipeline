@@ -2,6 +2,7 @@
 data/
 results/
 manual_results/
+.venv/
 
 # Nextflow internals
 work/
