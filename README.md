@@ -198,7 +198,9 @@ Run the VEP step of the pipeline with the ClinVar VCF against the reference with
 
 To run `polyphen_analysis.py`, create a new venv with `/path/to/python3 -m venv .venv`, activate it with `source .venv/bin/activate`, and `pip install -r requirements.txt` to get the pinned versions of all packages used in this analysis. This script was tested with Python version 3.14. 
 
-Build a table of variant classifications where the rows are ClinVar's classifications and the columns are PolyPhen's effect predictions with `polyphen_analysis.py`. This produces the table at the bottom of this section in addition to grouping ClinVar classifications, estimating sensitivity/specificity, and calculating associated confidence intervals. 
+`polyphen_analysis.py` Builds a table of variant classifications where the rows are ClinVar's classifications and the columns are PolyPhen's effect predictions with. This produces the table at the bottom of this section in addition to grouping ClinVar classifications, estimating sensitivity/specificity, and calculating associated confidence intervals. It also reads the table into `results/vep/clinvar_group_by_polyphen.csv` for plotting.
+
+Run `plot_polyphen.py` from `scripts` to plot a stacked bar graph of the proportions of PolyPhen predictions for variants classified by ClinVar. It reads in `results/vep/clinvar_group_by_polyphen.csv` and the graph is placed in `figures/PolyPhen_plot.png`. 
 
 
 ### Results
@@ -212,7 +214,13 @@ Build a table of variant classifications where the rows are ClinVar's classifica
 | VUS | 233 | 57 | 78 | 368 |
 | All | 301 | 79 | 139 | 519 |
 
-From this contingency table, I calculated strict and lenient sensitivity and specificity estimates. Lenient estimates count possibly and probably damaging as damaging calls. Strict estimates only use probably damaging calls for damaging (pathogenic) calls.
+The proportions within each group are shown below:
+
+![A stacked bar graph where bars are the proportions of PolyPhen predictions for variants classified by ClinVar. ](figures/PolyPhen_plot.png)
+
+A stacked bar graph where bars are the proportions of PolyPhen predictions for variants classified by ClinVar. The number of variants per ClinVar grouping are in each bar's label (n=x). 
+
+From the contingency table, I calculated strict and lenient sensitivity and specificity estimates. Lenient estimates count possibly and probably damaging as damaging calls. Strict estimates only use probably damaging calls for damaging (pathogenic) calls.
 
 | Metric | Threshold | k/n | Estimate | 95% CI (Wilson) |
 |---|---|---|---|---|

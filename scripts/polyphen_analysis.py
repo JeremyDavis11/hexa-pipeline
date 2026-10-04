@@ -54,6 +54,7 @@ df['polyphen_class'] = df['polyphen'].str.split('(').str[0]
 df['group'] = df['clnsig'].apply(check_label)
 print(pd.crosstab(df['group'], df['polyphen_class'], margins=True))
 print(pd.crosstab(df['clnsig'], df['polyphen_class'], margins=True))
+pd.crosstab(df['group'], df['polyphen_class']).to_csv('results/vep/clinvar_group_by_polyphen.csv')
 
 intervals = [('lenient sensitivity', 57, 77), 
              ('strict sensitivity', 45, 77), 
